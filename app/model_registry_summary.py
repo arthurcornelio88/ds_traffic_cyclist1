@@ -92,6 +92,11 @@ def get_best_model_from_summary(
 
     local_model_path = _download_gcs_dir(best["model_uri"], prefix=model_type)
 
+    # 💡 Si un sous-dossier "rf" ou "nn" existe à l'intérieur, on l'utilise
+    subfolder = os.path.join(local_model_path, model_type)
+    if os.path.isdir(subfolder):
+        local_model_path = subfolder
+
     if model_type == "rf":
         return RFPipeline.load(local_model_path)
     elif model_type == "nn":
