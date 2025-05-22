@@ -1,10 +1,11 @@
 import os
 import datetime
-from urllib.request import urlopen
 import json
-import mlflow.pyfunc
+import uuid
 from typing import Literal, Optional
+from urllib.request import urlopen
 
+# === Enregistrement d’un modèle dans le summary
 def update_summary(
     summary_path: str,
     model_type: str,
@@ -15,9 +16,6 @@ def update_summary(
     env: str = "prod",
     test_mode: bool = False
 ):
-    """
-    Ajoute un enregistrement dans summary.json.
-    """
     entry = {
         "timestamp": datetime.datetime.utcnow().isoformat(),
         "model_type": model_type,
@@ -29,7 +27,6 @@ def update_summary(
         "model_uri": model_uri
     }
 
-    # Local file path
     if summary_path.startswith("gs://"):
         local_tmp = "/tmp/summary.json"
         os.system(f"gsutil cp {summary_path} {local_tmp} || touch {local_tmp}")
@@ -37,7 +34,6 @@ def update_summary(
     else:
         summary_path_local = summary_path
 
-    # Append to local summary
     summary = []
     if os.path.exists(summary_path_local):
         with open(summary_path_local, "r") as f:
@@ -57,6 +53,7 @@ def update_summary(
     else:
         print(f"✅ summary.json mis à jour localement : {summary_path}")
 
+# === Chargement du meilleur modèle depuis le résumé
 def get_best_model_from_summary(
     model_type: str,
     summary_path: str,
@@ -73,7 +70,6 @@ def get_best_model_from_summary(
         with open(summary_path, "r") as f:
             summary = json.load(f)
 
-    # === Filtrage
     filtered = [
         r for r in summary
         if r["model_type"] == model_type
@@ -84,7 +80,6 @@ def get_best_model_from_summary(
     if not filtered:
         raise RuntimeError(f"Aucun modèle trouvé pour type={model_type}, env={env}, test_mode={test_mode}")
 
-    # === Choix du meilleur
     if metric == "rmse":
         best = min(filtered, key=lambda r: r["rmse"])
     elif metric == "r2":
@@ -93,22 +88,49 @@ def get_best_model_from_summary(
         raise ValueError(f"Métrique inconnue : {metric}")
 
     print(f"✅ Modèle {model_type} sélectionné : {best['run_id']} ({metric}={best[metric]})")
-    return mlflow.pyfunc.load_model(best["model_uri"])
+
+    local_model_path = _download_gcs_dir(best["model_uri"], prefix=model_type)
+
+    if model_type == "rf":
+        from app.classes import RFPipeline
+        return RFPipeline.load(local_model_path)
+    elif model_type == "nn":
+        from app.classes import NNPipeline
+        return NNPipeline.load(local_model_path)
+    else:
+        raise ValueError("Type de modèle non reconnu")
 
 
+# === Téléchargement GCS vers /tmp
+def _download_gcs_dir(gcs_uri: str, prefix="model") -> str:
+    from google.cloud import storage
+
+    bucket_name, path = gcs_uri.replace("gs://", "").split("/", 1)
+    local_tmp_dir = f"/tmp/{prefix}_{uuid.uuid4().hex}"
+    os.makedirs(local_tmp_dir, exist_ok=True)
+
+    client = storage.Client()
+    blobs = list(client.list_blobs(bucket_name, prefix=path))
+
+    for blob in blobs:
+        rel_path = os.path.relpath(blob.name, path)
+        local_file = os.path.join(local_tmp_dir, rel_path)
+        os.makedirs(os.path.dirname(local_file), exist_ok=True)
+        blob.download_to_filename(local_file)
+
+    return local_tmp_dir
+
+
+# === Lecture JSON depuis GCS
 def _read_gcs_json(gs_path: str) -> dict:
     from google.cloud import storage
 
     if not os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
         raise EnvironmentError("Variable GOOGLE_APPLICATION_CREDENTIALS non définie pour accéder à GCS")
 
-    parts = gs_path.replace("gs://", "").split("/", 1)
-    bucket_name = parts[0]
-    blob_path = parts[1]
-
+    bucket_name, blob_path = gs_path.replace("gs://", "").split("/", 1)
     client = storage.Client()
     bucket = client.bucket(bucket_name)
     blob = bucket.blob(blob_path)
 
-    content = blob.download_as_text()
-    return json.loads(content)
+    return json.loads(blob.download_as_text())
