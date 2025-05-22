@@ -4,6 +4,7 @@ import json
 import uuid
 from typing import Literal, Optional
 from urllib.request import urlopen
+from classes import RFPipeline, NNPipeline
 
 # === Enregistrement d’un modèle dans le summary
 def update_summary(
@@ -92,10 +93,8 @@ def get_best_model_from_summary(
     local_model_path = _download_gcs_dir(best["model_uri"], prefix=model_type)
 
     if model_type == "rf":
-        from app.classes import RFPipeline
         return RFPipeline.load(local_model_path)
     elif model_type == "nn":
-        from app.classes import NNPipeline
         return NNPipeline.load(local_model_path)
     else:
         raise ValueError("Type de modèle non reconnu")
