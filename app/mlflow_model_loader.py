@@ -1,9 +1,8 @@
 # mlflow_model_loader.py
 
-import mlflow
 import tempfile
 import os
-from app.classes import RFPipeline, NNPipeline
+from classes import RFPipeline, NNPipeline
 from mlflow.tracking import MlflowClient
 
 def get_best_run_id(model_type: str, env: str = "dev", test_mode: bool = False, metric: str = "", ascending=True):

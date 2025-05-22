@@ -4,7 +4,7 @@ import mlflow
 import mlflow.sklearn
 import mlflow.tensorflow
 import os
-from app.classes import RFPipeline, NNPipeline
+from classes import RFPipeline, NNPipeline
 from sklearn.metrics import mean_squared_error, r2_score
 import numpy as np
 
@@ -16,8 +16,8 @@ def setup_environment(env: str):
         data_path = "data/comptage-velo-donnees-compteurs.csv"
         artifact_path = "models/"
     elif env == "prod":
-        mlflow.set_tracking_uri("https://XXXX.ngrok.io")  # À personnaliser
-        data_path = "gs://mon-bucket-donnees/comptage-velo-donnees-compteurs.csv"
+        mlflow.set_tracking_uri("http://127.0.0.1:5000")  # À personnaliser
+        data_path = "gs://df_traffic_cyclist1/raw_data/comptage-velo-donnees-compteurs.csv"
         artifact_path = "/tmp/models/"
         os.makedirs(artifact_path, exist_ok=True)
     else:
