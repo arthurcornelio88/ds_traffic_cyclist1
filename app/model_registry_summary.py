@@ -1,10 +1,9 @@
 import os
-import json
 import datetime
-from typing import Literal, Optional
 from urllib.request import urlopen
+import json
 import mlflow.pyfunc
-
+from typing import Literal, Optional
 
 def update_summary(
     summary_path: str,
@@ -58,19 +57,19 @@ def update_summary(
     else:
         print(f"✅ summary.json mis à jour localement : {summary_path}")
 
-import json
-from urllib.request import urlopen
-import mlflow.pyfunc
-
 def get_best_model_from_summary(
     model_type: str,
     summary_path: str,
-    metric: str = "rmse",
+    metric: Literal["rmse", "r2"] = "rmse",
     env: str = "prod",
-    test_mode: bool = False
+    test_mode: Optional[bool] = False
 ):
-    with urlopen(summary_path) as f:
-        summary = json.load(f)
+    if summary_path.startswith("http"):
+        with urlopen(summary_path) as f:
+            summary = json.load(f)
+    else:
+        with open(summary_path, "r") as f:
+            summary = json.load(f)
 
     filtered = [
         r for r in summary
@@ -80,54 +79,14 @@ def get_best_model_from_summary(
     ]
 
     if not filtered:
-        raise RuntimeError(f"Aucun modèle {model_type} trouvé dans le résumé")
+        raise RuntimeError(f"Aucun modèle trouvé pour type={model_type}, env={env}, test_mode={test_mode}")
 
     if metric == "rmse":
         best = min(filtered, key=lambda r: r["rmse"])
     elif metric == "r2":
         best = max(filtered, key=lambda r: r["r2"])
     else:
-        raise ValueError("Métrique non supportée")
-
-    print(f"✅ Chargement du modèle {model_type} avec {metric}={best[metric]} depuis {best['model_uri']}")
-    return mlflow.pyfunc.load_model(best["model_uri"])
-
-def get_best_model_from_summary(
-    model_type: str,
-    summary_path: str,
-    metric: Literal["rmse", "r2"] = "rmse",
-    env: str = "prod",
-    test_mode: Optional[bool] = False
-):
-    """
-    Retourne un modèle MLflow.pyfunc chargé depuis le meilleur run selon la métrique.
-    """
-    # Charger summary
-    if summary_path.startswith("gs://"):
-        with urlopen(summary_path) as f:
-            summary = json.load(f)
-    else:
-        with open(summary_path, "r") as f:
-            summary = json.load(f)
-
-    # Filtrage
-    filtered = [
-        run for run in summary
-        if run["model_type"] == model_type
-        and run["env"] == env
-        and run["test_mode"] == test_mode
-    ]
-
-    if not filtered:
-        raise RuntimeError(f"Aucun modèle trouvé pour type={model_type}, env={env}, test_mode={test_mode}")
-
-    # Choix du meilleur
-    if metric == "rmse":
-        best_run = min(filtered, key=lambda r: r["rmse"])
-    elif metric == "r2":
-        best_run = max(filtered, key=lambda r: r["r2"])
-    else:
         raise ValueError(f"Métrique inconnue : {metric}")
 
-    print(f"✅ Modèle {model_type} sélectionné : {best_run['run_id']} ({metric}={best_run[metric]})")
-    return mlflow.pyfunc.load_model(best_run["model_uri"])
+    print(f"✅ Modèle {model_type} sélectionné : {best['run_id']} ({metric}={best[metric]})")
+    return mlflow.pyfunc.load_model(best["model_uri"])

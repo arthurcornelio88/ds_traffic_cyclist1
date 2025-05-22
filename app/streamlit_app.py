@@ -14,6 +14,7 @@ if "gcp_service_account" in st.secrets:
 
 # === Fonction de chargement dynamique des modèles via summary.json ===
 def fetch_best_pipeline(model_type: str):
+    print("📦 Chargement de get_best_model_from_summary depuis model_registry_summary.py")
     return get_best_model_from_summary(
         model_type=model_type,
         summary_path="https://storage.googleapis.com/df_traffic_cyclist1/models/summary.json",
