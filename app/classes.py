@@ -13,10 +13,8 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestRegressor
-import sys
-
-# Assure que la racine (contenant app/) est visible
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+import app.app_config as _  # forcer le sys.path side effect
+ 
 
 # Cleaning and transforming class
 

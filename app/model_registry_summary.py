@@ -4,13 +4,10 @@ import json
 import uuid
 from typing import Literal, Optional
 from urllib.request import urlopen
-from classes import RFPipeline, NNPipeline
-import sys
+from app.classes import RFPipeline, NNPipeline
+import app.app_config as _  # forcer le sys.path side effect
 
-# Assure que la racine (contenant app/) est visible
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-# === Enregistrement d’un modèle dans le summary
 def update_summary(
     summary_path: str,
     model_type: str,
@@ -21,6 +18,8 @@ def update_summary(
     env: str = "prod",
     test_mode: bool = False
 ):
+    import datetime
+
     entry = {
         "timestamp": datetime.datetime.utcnow().isoformat(),
         "model_type": model_type,
@@ -32,20 +31,30 @@ def update_summary(
         "model_uri": model_uri
     }
 
-    if summary_path.startswith("gs://"):
-        local_tmp = "/tmp/summary.json"
-        os.system(f"gsutil cp {summary_path} {local_tmp} || touch {local_tmp}")
-        summary_path_local = local_tmp
-    else:
-        summary_path_local = summary_path
-
+    # Déterminer le chemin local
+    summary_path_local = "/tmp/summary.json" if summary_path.startswith("gs://") else summary_path
     summary = []
+
+    # Télécharger ou charger si existant
+    if summary_path.startswith("gs://"):
+        os.system(f"gsutil cp {summary_path} {summary_path_local} || touch {summary_path_local}")
     if os.path.exists(summary_path_local):
         with open(summary_path_local, "r") as f:
             try:
                 summary = json.load(f)
             except json.JSONDecodeError:
-                print("⚠️ Fichier summary.json vide ou corrompu. Il sera réinitialisé.")
+                print("⚠️ summary.json vide ou corrompu. Réinitialisation.")
+                summary = []
+
+    # ⛔ Supprimer anciens du même type/env/test_mode
+    summary = [
+        s for s in summary
+        if not (
+            s["model_type"] == model_type
+            and s["env"] == env
+            and s["test_mode"] == test_mode
+        )
+    ]
 
     summary.append(entry)
 
