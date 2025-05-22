@@ -237,10 +237,11 @@ class RFPipeline:
         joblib.dump(self.model, os.path.join(dir_path, 'model.joblib'))
 
     @classmethod
-    def load(cls, path_prefix='rf_prod'):
+    def load(cls, folder: str):
         instance = cls()
-        instance.cleaner = joblib.load(f'{path_prefix}_cleaner.joblib')
-        instance.preprocessor = joblib.load(f'{path_prefix}_preprocessor.joblib')
-        instance.ohe_compteur = joblib.load(f'{path_prefix}_ohe_compteur.joblib')
-        instance.model = joblib.load(f'{path_prefix}_model.joblib')
+        instance.cleaner = joblib.load(os.path.join(folder, 'cleaner.joblib'))
+        instance.preprocessor = joblib.load(os.path.join(folder, 'preprocessor.joblib'))
+        instance.ohe_compteur = joblib.load(os.path.join(folder, 'ohe_compteur.joblib'))
+        instance.model = joblib.load(os.path.join(folder, 'model.joblib'))
         return instance
+
