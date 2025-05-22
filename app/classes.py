@@ -176,12 +176,12 @@ class NNPipeline:
         self.model.save(os.path.join(dir_path, 'model.keras'))
 
     @classmethod
-    def load(cls, path_prefix='nn_prod'):
+    def load(cls, folder: str):
         instance = cls()
-        instance.cleaner = joblib.load(f'{path_prefix}_cleaner.joblib')
-        instance.label_encoder = joblib.load(f'{path_prefix}_label_encoder.joblib')
-        instance.scaler = joblib.load(f'{path_prefix}_scaler.joblib')
-        instance.model = load_model(f'{path_prefix}_model.keras')
+        instance.cleaner = joblib.load(os.path.join(folder, 'cleaner.joblib'))
+        instance.label_encoder = joblib.load(os.path.join(folder, 'label_encoder.joblib'))
+        instance.scaler = joblib.load(os.path.join(folder, 'scaler.joblib'))
+        instance.model = load_model(os.path.join(folder, 'model.keras'))
         return instance
 
 # RF class
