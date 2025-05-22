@@ -7,7 +7,7 @@ import json
 # === Initialisation GCP (si secrets présents) ===
 if "gcp_service_account" in st.secrets:
     with open("/tmp/gcp.json", "w") as f:
-        json.dump(st.secrets["gcp_service_account"], f)
+        json.dump(dict(st.secrets["gcp_service_account"]), f)
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/gcp.json"
 
 # === Chargement des meilleurs modèles via MLflow ===#
