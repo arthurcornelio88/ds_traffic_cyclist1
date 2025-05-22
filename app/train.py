@@ -8,7 +8,7 @@ from app.classes import RFPipeline, NNPipeline
 from sklearn.metrics import mean_squared_error, r2_score
 import numpy as np
 
-
+###
 def setup_environment(env: str):
     if env == "dev":
         mlflow.set_tracking_uri("http://127.0.0.1:5000")
