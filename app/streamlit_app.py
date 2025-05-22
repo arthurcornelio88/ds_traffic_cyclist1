@@ -5,6 +5,10 @@ import json
 import time
 import numpy as np
 from model_registry_summary import get_best_model_from_summary
+import sys
+
+# Assure que la racine (contenant app/) est visible
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 # === Initialisation GCP (si secrets présents) ===
 if "gcp_service_account" in st.secrets:

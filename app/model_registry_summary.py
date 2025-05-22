@@ -5,6 +5,10 @@ import uuid
 from typing import Literal, Optional
 from urllib.request import urlopen
 from classes import RFPipeline, NNPipeline
+import sys
+
+# Assure que la racine (contenant app/) est visible
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 # === Enregistrement d’un modèle dans le summary
 def update_summary(

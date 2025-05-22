@@ -9,8 +9,11 @@ import numpy as np
 from datetime import datetime
 from app.classes import RFPipeline, NNPipeline
 from sklearn.metrics import mean_squared_error, r2_score
-from app.model_registry_summary import update_summary  # Assurez-vous que ce fichier est bien là
+from model_registry_summary import update_summary  # Assurez-vous que ce fichier est bien là
+import sys
 
+# Assure que la racine (contenant app/) est visible
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 def setup_environment(env: str, model_test: bool):
     if env == "dev":
