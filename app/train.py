@@ -16,10 +16,22 @@ def setup_environment(env: str):
         data_path = "data/comptage-velo-donnees-compteurs.csv"
         artifact_path = "models/"
     elif env == "prod":
-        mlflow.set_tracking_uri("http://127.0.0.1:5000")  # À personnaliser
+        # 1. Tracking URI en local (facultatif si juste log)
+        mlflow.set_tracking_uri("file:/tmp/mlruns")
+        mlflow.set_experiment("traffic_cycliste_experiment")
+
+        # 2. Chemin des données + artefacts
         data_path = "gs://df_traffic_cyclist1/raw_data/comptage-velo-donnees-compteurs.csv"
         artifact_path = "/tmp/models/"
         os.makedirs(artifact_path, exist_ok=True)
+
+        # 3. Auth GCP (si via secrets.toml → ajuster selon ton contexte)
+        if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/path/to/gcp.json"
+
+        # 4. Spécifie où les artefacts seront stockés
+        mlflow.set_artifact_uri("gs://df_traffic_cyclist1/mlruns")
+
     else:
         raise ValueError("Environnement invalide : choisir 'dev' ou 'prod'")
     

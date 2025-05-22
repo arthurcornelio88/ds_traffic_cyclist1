@@ -17,7 +17,7 @@ mlruns/
 models/
 
 # gcredentials
-datascientest-460618-86ff3fc59b71.json
+gcp.json
 secrets.toml
 
 # streamlit cloud
