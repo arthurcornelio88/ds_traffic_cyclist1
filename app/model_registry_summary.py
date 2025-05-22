@@ -64,13 +64,16 @@ def get_best_model_from_summary(
     env: str = "prod",
     test_mode: Optional[bool] = False
 ):
-    if summary_path.startswith("http"):
+    if summary_path.startswith("gs://"):
+        summary = _read_gcs_json(summary_path)
+    elif summary_path.startswith("http"):
         with urlopen(summary_path) as f:
             summary = json.load(f)
     else:
         with open(summary_path, "r") as f:
             summary = json.load(f)
 
+    # === Filtrage
     filtered = [
         r for r in summary
         if r["model_type"] == model_type
@@ -81,6 +84,7 @@ def get_best_model_from_summary(
     if not filtered:
         raise RuntimeError(f"Aucun modèle trouvé pour type={model_type}, env={env}, test_mode={test_mode}")
 
+    # === Choix du meilleur
     if metric == "rmse":
         best = min(filtered, key=lambda r: r["rmse"])
     elif metric == "r2":
@@ -90,3 +94,21 @@ def get_best_model_from_summary(
 
     print(f"✅ Modèle {model_type} sélectionné : {best['run_id']} ({metric}={best[metric]})")
     return mlflow.pyfunc.load_model(best["model_uri"])
+
+
+def _read_gcs_json(gs_path: str) -> dict:
+    from google.cloud import storage
+
+    if not os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+        raise EnvironmentError("Variable GOOGLE_APPLICATION_CREDENTIALS non définie pour accéder à GCS")
+
+    parts = gs_path.replace("gs://", "").split("/", 1)
+    bucket_name = parts[0]
+    blob_path = parts[1]
+
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(blob_path)
+
+    content = blob.download_as_text()
+    return json.loads(content)
