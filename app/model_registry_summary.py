@@ -91,3 +91,43 @@ def get_best_model_from_summary(
 
     print(f"✅ Chargement du modèle {model_type} avec {metric}={best[metric]} depuis {best['model_uri']}")
     return mlflow.pyfunc.load_model(best["model_uri"])
+
+def get_best_model_from_summary(
+    model_type: str,
+    summary_path: str,
+    metric: Literal["rmse", "r2"] = "rmse",
+    env: str = "prod",
+    test_mode: Optional[bool] = False
+):
+    """
+    Retourne un modèle MLflow.pyfunc chargé depuis le meilleur run selon la métrique.
+    """
+    # Charger summary
+    if summary_path.startswith("gs://"):
+        with urlopen(summary_path) as f:
+            summary = json.load(f)
+    else:
+        with open(summary_path, "r") as f:
+            summary = json.load(f)
+
+    # Filtrage
+    filtered = [
+        run for run in summary
+        if run["model_type"] == model_type
+        and run["env"] == env
+        and run["test_mode"] == test_mode
+    ]
+
+    if not filtered:
+        raise RuntimeError(f"Aucun modèle trouvé pour type={model_type}, env={env}, test_mode={test_mode}")
+
+    # Choix du meilleur
+    if metric == "rmse":
+        best_run = min(filtered, key=lambda r: r["rmse"])
+    elif metric == "r2":
+        best_run = max(filtered, key=lambda r: r["r2"])
+    else:
+        raise ValueError(f"Métrique inconnue : {metric}")
+
+    print(f"✅ Modèle {model_type} sélectionné : {best_run['run_id']} ({metric}={best_run[metric]})")
+    return mlflow.pyfunc.load_model(best_run["model_uri"])

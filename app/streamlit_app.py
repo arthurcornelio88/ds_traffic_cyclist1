@@ -16,7 +16,7 @@ if "gcp_service_account" in st.secrets:
 def fetch_best_pipeline(model_type: str):
     return get_best_model_from_summary(
         model_type=model_type,
-        summary_path="gs://df_traffic_cyclist1/models/summary.json",
+        summary_path="https://storage.cloud.google.com/df_traffic_cyclist1/models/summary.json",
         metric="rmse",
         env="prod",
         test_mode=True
