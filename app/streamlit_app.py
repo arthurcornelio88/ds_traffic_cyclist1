@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from .mlflow_model_loader import load_pipeline_from_mlflow
+from mlflow_model_loader import load_pipeline_from_mlflow
 import os
 import json
 
