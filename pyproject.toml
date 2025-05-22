@@ -5,6 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "fsspec>=2025.5.0",
+    "gcsfs>=2025.5.0.post1",
     "ipykernel>=6.29.5",
     "matplotlib>=3.10.3",
     "mlflow>=2.22.0",
