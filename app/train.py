@@ -26,11 +26,11 @@ def setup_environment(env: str):
         os.makedirs(artifact_path, exist_ok=True)
 
         # 3. Auth GCP (si via secrets.toml → ajuster selon ton contexte)
-        if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
-            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/path/to/gcp.json"
-
-        # 4. Spécifie où les artefacts seront stockés
-        mlflow.set_artifact_uri("gs://df_traffic_cyclist1/mlruns")
+        if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS") is None:
+            gcp_credentials_path = "./gcp.json"  # ⚠️ À adapter
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = gcp_credentials_path
+            if not os.path.exists(gcp_credentials_path):
+                raise FileNotFoundError(f"Fichier de clé GCP introuvable : {gcp_credentials_path}")
 
     else:
         raise ValueError("Environnement invalide : choisir 'dev' ou 'prod'")
@@ -129,6 +129,13 @@ if __name__ == "__main__":
 
     sample_size = 1000 if args.model_test else None
     data_path, artifact_path = setup_environment(args.env)
+
+    print(f"✅ Environnement {args.env} configuré : MLflow et artefacts prêts")
+    print(f"✅ Chargement des données depuis {data_path}...")
+    import pandas as pd
+    df = pd.read_csv("gs://df_traffic_cyclist1/raw_data/comptage-velo-donnees-compteurs.csv", sep=";")
+    print(df.head())
+
 
     X, y = load_and_clean_data(data_path, sample_size=sample_size)
     print(f"✅ Données chargées : {X.shape[0]} échantillons pour l'environnement {args.env}")

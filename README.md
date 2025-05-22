@@ -22,7 +22,7 @@ mkdir -p mlruns/artifacts
 
 mlflow server \
   --backend-store-uri file:./mlruns \
-  --default-artifact-root file:./mlruns/artifacts \
+  --default-artifact-root gs://df_traffic_cyclist1/mlruns \
   --host 0.0.0.0 \
   --port 5000
   ```
