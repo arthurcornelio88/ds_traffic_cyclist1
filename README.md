@@ -20,10 +20,13 @@ python ./app.train.py --env dev --model_test # Train rapide local
 ```
 mkdir -p mlruns/artifacts
 
+# en prod
+export GOOGLE_APPLICATION_CREDENTIALS=./mlflow-ui-access.json
+
 mlflow server \
   --backend-store-uri file:./mlruns \
   --default-artifact-root gs://df_traffic_cyclist1/mlruns \
-  --host 0.0.0.0 \
+  --host 127.0.0.1 \
   --port 5000
   ```
 

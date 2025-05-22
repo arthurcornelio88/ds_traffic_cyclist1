@@ -19,6 +19,8 @@ models/
 # gcredentials
 gcp.json
 secrets.toml
+mlflow-trainer.json
+mlflow-ui-access.json
 
 # streamlit cloud
 .devcontainer/

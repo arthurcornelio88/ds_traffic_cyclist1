@@ -9,25 +9,31 @@ from sklearn.metrics import mean_squared_error, r2_score
 import numpy as np
 
 ###
-def setup_environment(env: str):
+def setup_environment(env: str, model_test: bool):
     if env == "dev":
         mlflow.set_tracking_uri("http://127.0.0.1:5000")
         mlflow.set_experiment("traffic_cycliste_experiment")
-        data_path = "data/comptage-velo-donnees-compteurs.csv"
+        if model_test:
+            data_path = "data/comptage-velo-donnees-compteurs_test.csv"
+        else:
+            data_path = "data/comptage-velo-donnees-compteurs.csv"
         artifact_path = "models/"
     elif env == "prod":
         # 1. Tracking URI en local (facultatif si juste log)
-        mlflow.set_tracking_uri("file:/tmp/mlruns")
+        mlflow.set_tracking_uri("http://127.0.0.1:5000")
         mlflow.set_experiment("traffic_cycliste_experiment")
 
         # 2. Chemin des données + artefacts
-        data_path = "gs://df_traffic_cyclist1/raw_data/comptage-velo-donnees-compteurs.csv"
-        artifact_path = "/tmp/models/"
+        if model_test:
+            data_path = "gs://df_traffic_cyclist1/raw_data/comptage-velo-donnees-compteurs_test.csv"
+        else:
+            data_path = "gs://df_traffic_cyclist1/raw_data/comptage-velo-donnees-compteurs.csv"
+        artifact_path = "models/"
         os.makedirs(artifact_path, exist_ok=True)
 
         # 3. Auth GCP (si via secrets.toml → ajuster selon ton contexte)
         if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS") is None:
-            gcp_credentials_path = "./gcp.json"  # ⚠️ À adapter
+            gcp_credentials_path = "./mlflow-trainer.json"  # ⚠️ À adapter
             os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = gcp_credentials_path
             if not os.path.exists(gcp_credentials_path):
                 raise FileNotFoundError(f"Fichier de clé GCP introuvable : {gcp_credentials_path}")
@@ -38,7 +44,7 @@ def setup_environment(env: str):
     return data_path, artifact_path
 
 
-def load_and_clean_data(path: str, sample_size: int = None):
+def load_and_clean_data(path: str):
     df = pd.read_csv(path, sep=";")
     df[['latitude', 'longitude']] = df['Coordonnées géographiques'].str.split(',', expand=True).astype(float)
     df_clean = df.dropna(subset=['latitude', 'longitude'])
@@ -46,18 +52,21 @@ def load_and_clean_data(path: str, sample_size: int = None):
     X = df_clean.drop(columns='Comptage horaire')
     y = df_clean['Comptage horaire']
 
-    if sample_size:
-        X_sample = X.sample(sample_size, random_state=42)
-        y_sample = y.loc[X_sample.index]
-        return X_sample, y_sample
     return X, y
 
+import shutil
 
-def train_rf(X, y, artifact_path, env, test_mode):
+def train_rf(X, y, env, test_mode):
     y = y.to_numpy()
-
     run_name = f"RandomForest_Train_{env}" + ("_TEST" if test_mode else "")
+
+    print("Tracking URI ACTIF :", mlflow.get_tracking_uri())
+
     with mlflow.start_run(run_name=run_name):
+        run = mlflow.active_run()
+        print(f"🆔 MLflow Run ID : {run.info.run_id}")
+        print(f"🆔 MLflow Run Name : {run_name}")
+
         mlflow.set_tag("mode", env)
         mlflow.set_tag("test_mode", test_mode)
         mlflow.log_metric("test_mode", int(test_mode))
@@ -78,17 +87,30 @@ def train_rf(X, y, artifact_path, env, test_mode):
 
         print(f"🎯 Random Forest – RMSE : {rmse_rf:.2f} | R² : {r2_rf:.4f}")
 
-        model_path = os.path.join(artifact_path, "rf_prod")
-        os.makedirs(model_path, exist_ok=True)
-        rf.save(os.path.join(model_path, "rf"))
-        mlflow.log_artifacts(model_path, artifact_path="rf_model")
+        temp_model_path = "tmp_rf_model"
+        os.makedirs(temp_model_path, exist_ok=True)
+
+        rf.save(os.path.join(temp_model_path, "rf"))
+        mlflow.log_artifacts(temp_model_path, artifact_path="rf_model")
+
+        print(f"📦 Modèle sauvegardé dans : {temp_model_path}")
+        print(f"📤 Artefacts MLflow loggés dans : rf_model")
+        print(f"📁 Artefacts visibles dans : {os.path.join(mlflow.get_tracking_uri().replace('file:', ''), run.info.experiment_id, run.info.run_id)}")
+
+        shutil.rmtree(temp_model_path)  # nettoyage
+        print(f"🧹 Répertoire temporaire supprimé : {temp_model_path}")
 
 
-def train_nn(X, y, artifact_path, env, test_mode):
+
+def train_nn(X, y, env, test_mode):
     y = y.to_numpy(dtype="float32")
-
     run_name = f"NeuralNet_Train_{env}" + ("_TEST" if test_mode else "")
+
     with mlflow.start_run(run_name=run_name):
+        run = mlflow.active_run()
+        print(f"🆔 MLflow Run ID : {run.info.run_id}")
+        print(f"🆔 MLflow Run Name : {run_name}")
+
         mlflow.set_tag("mode", env)
         mlflow.set_tag("test_mode", test_mode)
         mlflow.log_metric("test_mode", int(test_mode))
@@ -115,11 +137,19 @@ def train_nn(X, y, artifact_path, env, test_mode):
 
         print(f"🎯 Neural Net – RMSE : {rmse_nn:.2f} | R² : {r2_nn:.4f} | Params: {total_params}")
 
-        model_path = os.path.join(artifact_path, "nn_prod")
-        os.makedirs(model_path, exist_ok=True)
-        nn.save(os.path.join(model_path, "nn"))
-        mlflow.log_artifacts(model_path, artifact_path="nn_model")
+        temp_model_path = "tmp_nn_model"
+        os.makedirs(temp_model_path, exist_ok=True)
+        
+        nn.save(os.path.join(temp_model_path, "nn"))
+        mlflow.log_artifacts(temp_model_path, artifact_path="nn_model")
 
+        print(f"📦 Modèle sauvegardé dans : {temp_model_path}")
+        print(f"📤 Artefacts MLflow loggés dans : nn_model")
+        print(f"📁 Artefacts visibles dans : {os.path.join(mlflow.get_tracking_uri().replace('file:', ''), run.info.experiment_id, run.info.run_id)}")
+
+        shutil.rmtree(temp_model_path)  # nettoyage
+        print(f"🧹 Répertoire temporaire supprimé : {temp_model_path}")
+        
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train bike count models (RF + NN)")
@@ -127,20 +157,20 @@ if __name__ == "__main__":
     parser.add_argument('--env', default="dev", choices=["dev", "prod"], help="Select environment: dev or prod")
     args = parser.parse_args()
 
-    sample_size = 1000 if args.model_test else None
-    data_path, artifact_path = setup_environment(args.env)
+    # data_path = 1000 if args.model_test else None
+    data_path, artifact_path = setup_environment(args.env, args.model_test)
 
     print(f"✅ Environnement {args.env} configuré : MLflow et artefacts prêts")
     print(f"✅ Chargement des données depuis {data_path}...")
-    import pandas as pd
-    df = pd.read_csv("gs://df_traffic_cyclist1/raw_data/comptage-velo-donnees-compteurs.csv", sep=";")
-    print(df.head())
 
+    # import pandas as pd
+    # df = pd.read_csv("gs://df_traffic_cyclist1/raw_data/comptage-velo-donnees-compteurs_test.csv", sep=";")
+    # print(df.head())
 
-    X, y = load_and_clean_data(data_path, sample_size=sample_size)
+    X, y = load_and_clean_data(data_path)
     print(f"✅ Données chargées : {X.shape[0]} échantillons pour l'environnement {args.env}")
 
-    train_rf(X, y, artifact_path, env=args.env, test_mode=args.model_test)
-    train_nn(X, y, artifact_path, env=args.env, test_mode=args.model_test)
+    train_rf(X, y, env=args.env, test_mode=args.model_test)
+    train_nn(X, y, env=args.env, test_mode=args.model_test)
 
     print(f"✅ Modèles entraînés et loggés avec MLflow ({args.env})")
