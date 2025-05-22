@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 import joblib
+import os
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import LabelEncoder, StandardScaler
@@ -167,11 +168,12 @@ class NNPipeline:
         X_scaled = self.scaler.transform(X_dense)
         return X_id, X_scaled
 
-    def save(self, path_prefix='nn_prod'):
-        joblib.dump(self.cleaner, f'{path_prefix}_cleaner.joblib')
-        joblib.dump(self.label_encoder, f'{path_prefix}_label_encoder.joblib')
-        joblib.dump(self.scaler, f'{path_prefix}_scaler.joblib')
-        self.model.save(f'{path_prefix}_model.keras')
+    def save(self, dir_path='nn_prod'):
+        os.makedirs(dir_path, exist_ok=True)
+        joblib.dump(self.cleaner, os.path.join(dir_path, 'cleaner.joblib'))
+        joblib.dump(self.label_encoder, os.path.join(dir_path, 'label_encoder.joblib'))
+        joblib.dump(self.scaler, os.path.join(dir_path, 'scaler.joblib'))
+        self.model.save(os.path.join(dir_path, 'model.keras'))
 
     @classmethod
     def load(cls, path_prefix='nn_prod'):
@@ -226,11 +228,13 @@ class RFPipeline:
         """Encapsulation propre pour prédiction depuis brut."""
         return self.predict(X)
 
-    def save(self, path_prefix='rf_prod'):
-        joblib.dump(self.cleaner, f'{path_prefix}_cleaner.joblib')
-        joblib.dump(self.preprocessor, f'{path_prefix}_preprocessor.joblib')
-        joblib.dump(self.ohe_compteur, f'{path_prefix}_ohe_compteur.joblib')
-        joblib.dump(self.model, f'{path_prefix}_model.joblib')
+    def save(self, dir_path='rf_prod'):
+        import os
+        os.makedirs(dir_path, exist_ok=True)
+        joblib.dump(self.cleaner, os.path.join(dir_path, 'cleaner.joblib'))
+        joblib.dump(self.preprocessor, os.path.join(dir_path, 'preprocessor.joblib'))
+        joblib.dump(self.ohe_compteur, os.path.join(dir_path, 'ohe_compteur.joblib'))
+        joblib.dump(self.model, os.path.join(dir_path, 'model.joblib'))
 
     @classmethod
     def load(cls, path_prefix='rf_prod'):

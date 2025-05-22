@@ -24,3 +24,5 @@ mlflow-ui-access.json
 
 # streamlit cloud
 .devcontainer/
+
+models/*
