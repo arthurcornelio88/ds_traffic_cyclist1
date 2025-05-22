@@ -46,7 +46,7 @@ Clé : gcp_service_account
 
 Valeur : contenu du JSON
 ```
-
+to-push
 > bucket gcp + mlflow server --default-artifact-root gs://my-bucket/models 
 
 Avec terraform ! gestion de credentials tb ! automatique.
