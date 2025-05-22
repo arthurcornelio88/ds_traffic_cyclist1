@@ -11,9 +11,9 @@ git commit -m "Ajout des modèles avec Git LFS"
 
 ## Train
 ```hcl
-python train/train.py --env dev              # Entraîne en local
-python train/train.py --env prod             # Entraîne avec GCP/ngrok
-python train/train.py --env dev --model_test # Train rapide local
+python ./app.train.py --env dev              # Entraîne en local
+python ./app.train.py --env prod             # Entraîne avec GCP/ngrok
+python ./app.train.py --env dev --model_test # Train rapide local
 ```
 
 ### Lancer MLflow en local

@@ -4,7 +4,7 @@ import mlflow
 import mlflow.sklearn
 import mlflow.tensorflow
 import os
-from classes import RFPipeline, NNPipeline
+from app.classes import RFPipeline, NNPipeline
 from sklearn.metrics import mean_squared_error, r2_score
 import numpy as np
 
