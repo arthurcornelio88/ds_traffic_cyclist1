@@ -28,9 +28,8 @@ def fetch_best_pipeline(model_type: str):
     return get_best_model_from_summary(
         model_type=model_type,
         summary_path="gs://df_traffic_cyclist1/models/summary.json",
-        metric="rmse",
+        metric="r2",
         env="prod",
-        test_mode=True
     )
 
 @st.cache_resource
