@@ -89,7 +89,7 @@ if page == "🔍 Prédiction exemple":
 
         st.markdown("### 🔍 Observation sélectionnée")
         st.json(raw_samples[idx])
-        st.success(f"🧾 Prédiction du comptage horaire : **{round(pred)} vélos**")
+        st.success(f"🧾 Prédiction du comptage horaire : **{round(float(pred))} vélos**")
 
     except Exception as e:
         st.error("Erreur lors de la prédiction :")
