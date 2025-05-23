@@ -4,6 +4,8 @@
 
 A lightweight, production-ready ML app to predict **hourly bicycle traffic** in Paris using either a **Random Forest** or **Neural Network** model.
 
+> Do want to see it in action ? [Here's our Streamlit Cloud endpoint!](https://dstrafficcyclist1.streamlit.app/))
+
 ---
 
 ## 🎯 Features
