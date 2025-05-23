@@ -71,7 +71,7 @@ raw_samples = [
         'mois_annee_comptage': 'novembre 2024'
     },
     {
-        'nom_du_compteur': 'Quai d'Orsay E-O',
+        'nom_du_compteur': "Quai d'Orsay E-O",
         'date_et_heure_de_comptage': '2024-06-03 15:00:00+02:00',
         'coordonnées_géographiques': '48.8784, 2.3574',
         'mois_annee_comptage': 'juin 2024'
