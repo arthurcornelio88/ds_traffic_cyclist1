@@ -1,12 +1,18 @@
-# 🚲 Bike Count Prediction (Streamlit + MLflow + GCS)
+# 🚲 Bike Count Prediction
 
-This project predicts **hourly bicycle traffic** from Paris sensors using a simple UI powered by **Streamlit**.
+### (Streamlit + MLflow + GCS + DIY Registry)
 
-Key features:
-- 🧠 Predict using **Random Forest** or **Neural Network**
-- ☁️ Fully hosted on **Streamlit Cloud** + **GCP** (no local server needed)
-- 📦 Custom model registry via `summary.json` on GCS
-- 🔁 Batch or single prediction, CSV download
+A lightweight, production-ready ML app to predict **hourly bicycle traffic** in Paris using either a **Random Forest** or **Neural Network** model.
+
+---
+
+## 🎯 Features
+
+* 🧠 Predict with **Random Forest** or **Neural Network**
+* 🌐 Deployable on **Streamlit Cloud** (zero backend)
+* ☁️ Inference powered by **GCS-hosted models**
+* 📊 Supports both single & batch predictions
+* 🧰 Uses a custom `summary.json` registry — no MLflow dependency at runtime
 
 ---
 
@@ -15,96 +21,104 @@ Key features:
 ```mermaid
 graph TD
   A[User Input / CSV] --> B[Streamlit App]
-  B --> C[Load best model from summary.json]
-  C --> D[Model files on GCS]
-  B --> E[Prediction UI]
+  B --> C[Fetch best model from summary.json]
+  C --> D[Download model from GCS]
+  B --> E[Prediction & Results UI]
 
-  subgraph ML Training
+  subgraph Training Phase
     F[train.py]
-    F --> G[Fit + Save model locally]
+    F --> G[Fit models locally]
     G --> H[Upload to GCS]
     G --> I[Update summary.json]
   end
-````
+```
 
 ---
 
-## 🧠 DIY Model Registry (no MLflow dependency at runtime)
+## 🧠 MLflow-Free Inference (Custom Registry)
 
-This project **does not rely on the MLflow model registry**.
+Rather than querying the MLflow registry at runtime, we:
 
-✅ Instead:
+* 🔖 Maintain a lightweight **`summary.json`** file in GCS
+* 🧼 Store the **best model only**, filtered by `model_type`, `env`, and `test_mode`
+* 📦 Pull model artifacts directly from GCS inside the Streamlit app
 
-* We log metadata to a lightweight **`summary.json`** file on GCS
-* We track only the best model (by `rmse` or `r2`) per type/env/test mode
-* We load the corresponding GCS model directory at runtime
+✅ Advantages:
 
-This allows for:
-
-* Zero MLflow runtime dependencies
-* Easy GCS integration
-* Fast cold starts on **Streamlit Cloud**
+* No MLflow server required at inference
+* Faster app startup
+* Easy deployment on **Streamlit Cloud**
 
 ---
 
-## ✅ Run on Streamlit Cloud
+## 🚀 Deploy to Streamlit Cloud
 
-Works out-of-the-box. Here's how to deploy:
+Your app is plug-and-play with Streamlit Cloud.
 
-### Step-by-step
+### 1. Push to GitHub
 
-1. **Push to GitHub** (make sure `requirements.txt` exists)
-2. Go to [https://share.streamlit.io](https://share.streamlit.io)
-3. Create a new app pointing to `app/streamlit_app.py`
-4. Go to **"Secrets"**, and paste your GCP service account JSON:
+Make sure you include:
 
-   ```toml
-   [gcp_service_account]
-   # Paste the raw JSON here
-   ```
-5. Done ✅ — your model will auto-load from GCS and predictions are served live.
+* `requirements.txt`
+* The full `app/` folder
+
+### 2. Launch the app
+
+Go to [https://share.streamlit.io](https://share.streamlit.io), and select:
+
+```
+app/streamlit_app.py
+```
+
+### 3. Configure GCP secrets
+
+Paste your service account JSON into Streamlit secrets:
+
+```toml
+[gcp_service_account]
+# Paste your full service account JSON key here
+```
+
+✅ Done. Streamlit now:
+
+* Loads the best model from `summary.json`
+* Downloads model weights from GCS
+* Predicts live on user input or CSV
 
 ---
 
-## 🧪 Local Development
+## 🔧 Local Dev & Training
 
-### Prereqs
+### Prerequisites
 
-```hcl
+```bash
 uv init
 uv venv
 uv sync
 ```
 
-### Train & Upload Models
+### Training
 
 ```bash
-# Dev mode, small dataset
+# Fast dev run
 python app/train.py --env dev --model_test
 
-# Full training + upload to GCS
+# Full training + GCS upload
 python app/train.py --env prod
-```
-
-### Launch Streamlit UI
-
-```bash
-streamlit run app/streamlit_app.py
 ```
 
 ---
 
-## ☁️ Optional: MLflow Local UI
-
-Only used during training (not needed at runtime):
+## 📺 (Optional) MLflow Tracking UI
 
 ```bash
-# Local backend
+# Create artifact path
 mkdir -p mlruns/artifacts
 
-# Prod (optional)
+# Use GCP key for UI access
 export GOOGLE_APPLICATION_CREDENTIALS=./mlflow-ui-access.json
 
+# Launch UI server
 mlflow server \
   --backend-store-uri file:./mlruns \
   --default-artifact-root gs://df_traffic_cyclist1/mlruns \
@@ -114,116 +128,61 @@ mlflow server \
 
 ---
 
-Perfect — let's finalize your `README.md` with a full GCP service account setup section, documenting the **three key service accounts** used in your project:
-
----
-
 ## 🔐 GCP Service Accounts Setup
 
-Your project uses **three separate service accounts** for clear roles separation between training, inference, and UI.
+This project uses **three GCP service accounts** to separate roles cleanly:
 
-### 1. `mlflow-trainer@...`
+| Service Account       | Role                    | Used for                      |
+| --------------------- | ----------------------- | ----------------------------- |
+| `mlflow-trainer`      | `Storage Object Admin`  | Training + model upload       |
+| `mlflow-ui-access`    | `Storage Object Viewer` | Accessing MLflow UI in prod   |
+| `gcp_service_account` | `Storage Object Viewer` | Streamlit app model inference |
 
-Used in `train.py` to:
+### Setup Instructions
 
-* Upload trained models to GCS
-* Update `summary.json`
+1. Go to [IAM → Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts)
+2. Create each account and assign roles
+3. Download each JSON key securely
 
-**Required Roles:**
+---
 
-* `Storage Object Admin`
-
-➡️ Set the credentials locally:
+## 🗂 Directory Structure
 
 ```bash
-export GOOGLE_APPLICATION_CREDENTIALS=./mlflow-trainer.json
-```
-
----
-
-### 2. `mlflow-ui-access@...`
-
-Used **only** if you run MLflow UI in **prod mode** with artifact logging to GCS.
-
-**Required Roles:**
-
-* `Storage Object Viewer`
-
-➡️ Example:
-
-```bash
-export GOOGLE_APPLICATION_CREDENTIALS=./mlflow-ui-access.json
-
-mlflow server \
-  --backend-store-uri file:./mlruns \
-  --default-artifact-root gs://df_traffic_cyclist1/mlruns \
-  --host 127.0.0.1 --port 5000
-```
-
----
-
-### 3. `gcp_service_account` (for Streamlit Cloud)
-
-Used by your **deployed Streamlit app** to:
-
-* Download the latest model artifacts
-* Read `summary.json` from GCS
-
-**Required Role:**
-
-* `Storage Object Viewer`
-
-#### 👉 Add to Streamlit secrets:
-
-In [streamlit.io/cloud](https://streamlit.io/cloud) → *Secrets*:
-
-```toml
-[gcp_service_account]
-# Paste your full JSON key here
-```
-
----
-
-## ✅ Permissions Recap
-
-| Service Account       | Purpose               | Permissions             |
-| --------------------- | --------------------- | ----------------------- |
-| `mlflow-trainer`      | Train + upload models | `Storage Object Admin`  |
-| `mlflow-ui-access`    | MLflow UI (prod)      | `Storage Object Viewer` |
-| `gcp_service_account` | Streamlit Cloud app   | `Storage Object Viewer` |
-
-All three can be created from the GCP IAM console:
-
-> [https://console.cloud.google.com/iam-admin/serviceaccounts](https://console.cloud.google.com/iam-admin/serviceaccounts)
-
----
-
-## 📂 Directory Structure
-
-```
 app/
-├── app_config.py              # sys.path trick
-├── streamlit_app.py           # UI
-├── train.py                   # Training CLI
-├── model_registry_summary.py  # DIY model registry
-├── classes.py                 # Pipeline logic (RF/NN)
+├── app_config.py              # Ensures src/app is in sys.path
+├── streamlit_app.py           # UI logic
+├── train.py                   # CLI trainer
+├── model_registry_summary.py  # Custom registry loader
+├── classes.py                 # RF & NN pipeline classes
 data/
 models/
+mlruns/                        # Optional MLflow UI
 ```
 
 ---
 
-## ✅ Summary
+## 💡 Notes & Tips
 
-* ✔️ Fully serverless inference using Streamlit Cloud + GCS
-* ✔️ DIY model registry using `summary.json`
-* ✔️ Streamlit picks the best model automatically
-* ✔️ No MLflow required at runtime
-* ⚡ Cold-start ready + fast batch predictions
+* GitHub LFS is used to track `.joblib` / `.keras` models:
+
+  ```bash
+  git lfs install
+  git lfs track "*.joblib"
+  git lfs track "*.keras"
+  git add .gitattributes
+  ```
+
+* Cold-starts are fast thanks to direct GCS access
+
+* Can be extended easily to support more models
 
 ---
 
 ## 👨‍🔬 Authors
 
-Built by [Arthur Cornélio](https://github.com/arthurcornelio88), [Ibtihel Nemri]() et [Bruno Happi]().
+Built with ❤️ by:
 
+* [Arthur Cornélio](https://github.com/arthurcornelio88)
+* [Ibtihel Nemri]()
+* [Bruno Happi]()
