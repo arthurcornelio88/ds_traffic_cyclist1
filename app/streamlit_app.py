@@ -39,10 +39,12 @@ def load_best_pipeline(model_type: str):
 
 # Chargement des pipelines
 rf_pipeline = load_best_pipeline("rf")
-st.write("✅ Random Forest chargé :", type(rf_pipeline))
+# st.write("✅ Random Forest chargé :", type(rf_pipeline)) # DEBUG
+st.write("✅ Random Forest chargé !")
 
 nn_pipeline = load_best_pipeline("nn")
-st.write("✅ Neural Net chargé :", type(nn_pipeline))
+# st.write("✅ Neural Net chargé !", type(nn_pipeline)) # DEBUG
+st.write("✅ Neural Net chargé !")
 
 # === UI ===
 st.sidebar.title("🧭 Navigation")
