@@ -67,6 +67,7 @@ def update_summary(
     else:
         print(f"✅ summary.json mis à jour localement : {summary_path}")
 
+# === Chargement du meilleur modèle depuis le résumé
 def get_best_model_from_summary(
     model_type: str,
     summary_path: str,
@@ -87,18 +88,20 @@ def get_best_model_from_summary(
         if r["model_type"] == model_type
         and r["env"] == env
         and r["test_mode"] == test_mode
-        and r["rmse"] > 0  # descartar modelos irreais
+        and r["rmse"] > 0  # éviter les modèles fictifs/perfectibles
     ]
 
     if not filtered:
         raise RuntimeError(f"Aucun modèle trouvé pour type={model_type}, env={env}, test_mode={test_mode}")
 
-    # Ordenar por r2 decrescente, depois rmse crescente
+    # Tri combiné : r2 décroissant puis rmse croissant
     best = max(filtered, key=lambda r: (r["r2"], -r["rmse"]))
 
     print(f"✅ Modèle {model_type} sélectionné : {best['run_id']} (r2={best['r2']}, rmse={best['rmse']})")
 
     local_model_path = _download_gcs_dir(best["model_uri"], prefix=model_type)
+
+    # 💡 Si un sous-dossier "rf" ou "nn" existe à l'intérieur, on l'utilise
     subfolder = os.path.join(local_model_path, model_type)
     if os.path.isdir(subfolder):
         local_model_path = subfolder
