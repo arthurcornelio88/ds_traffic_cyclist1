@@ -4,8 +4,9 @@ import os
 import json
 import time
 import numpy as np
-from app.model_registry_summary import get_best_model_from_summary
 import app.app_config as _  # forcer le sys.path side effect
+from app.model_registry_summary import get_best_model_from_summary
+
 
 
 # === Initialisation GCP (si secrets présents) ===

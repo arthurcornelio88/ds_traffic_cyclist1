@@ -1,11 +1,11 @@
 import os
-import datetime
 import json
 import uuid
 from typing import Literal, Optional
 from urllib.request import urlopen
-from app.classes import RFPipeline, NNPipeline
 import app.app_config as _  # forcer le sys.path side effect
+from app.classes import RFPipeline, NNPipeline
+
 
 
 def update_summary(

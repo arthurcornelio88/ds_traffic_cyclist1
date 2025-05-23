@@ -9,8 +9,9 @@ import numpy as np
 from datetime import datetime
 from app.classes import RFPipeline, NNPipeline
 from sklearn.metrics import mean_squared_error, r2_score
-from app.model_registry_summary import update_summary
 import app.app_config as _  # forcer le sys.path side effect
+from app.model_registry_summary import update_summary
+
 
 def setup_environment(env: str, model_test: bool):
     if env == "dev":
