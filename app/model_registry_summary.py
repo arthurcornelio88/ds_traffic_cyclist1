@@ -72,6 +72,7 @@ def get_best_model_from_summary(
     model_type: str,
     summary_path: str,
     env: str = "prod",
+    metric: Literal["rmse", "r2"] = "rmse",
     test_mode: Optional[bool] = False
 ):
     if summary_path.startswith("gs://"):
