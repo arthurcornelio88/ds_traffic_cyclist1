@@ -166,18 +166,9 @@ mlruns/                        # Optional MLflow UI
 
 ## 💡 Notes & Tips
 
-* GitHub LFS is used to track `.joblib` / `.keras` models:
-
-  ```bash
-  git lfs install
-  git lfs track "*.joblib"
-  git lfs track "*.keras"
-  git add .gitattributes
-  ```
-
 * Cold-starts are fast thanks to direct GCS access
 
-* Can be extended easily to support more models
+* Easily extendable to support additional models, thanks to their encapsulation within classes.
 
 ---
 
