@@ -89,7 +89,7 @@ def get_best_model_from_summary(
         if r["model_type"] == model_type
         and r["env"] == env
         and r["test_mode"] == test_mode
-        and r["rmse"] > 0  # éviter les modèles fictifs/perfectibles
+        #and r["rmse"] > 0  # éviter les modèles fictifs/perfectibles
     ]
 
     if not filtered:
