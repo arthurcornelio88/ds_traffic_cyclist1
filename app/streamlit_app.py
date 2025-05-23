@@ -4,7 +4,7 @@ import os
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
-    
+
 import streamlit as st
 import pandas as pd
 import os
@@ -57,19 +57,19 @@ def get_pipeline(name: str):
 # === Exemples manuels
 raw_samples = [
     {
-        'nom_du_compteur': 'Totem 73 boulevard de Sébastopol S-N',
+        'nom_du_compteur': '106 avenue Denfert Rochereau NE-SO',
         'date_et_heure_de_comptage': '2025-05-17 18:00:00+02:00',
         'coordonnées_géographiques': '48.8672, 2.3501',
         'mois_annee_comptage': 'mai 2025'
     },
     {
-        'nom_du_compteur': '35 boulevard de Ménilmontant NO-SE',
+        'nom_du_compteur': '106 avenue Denfert Rochereau NE-SO',
         'date_et_heure_de_comptage': '2024-11-12 08:00:00+02:00',
         'coordonnées_géographiques': '48.8639, 2.3895',
         'mois_annee_comptage': 'novembre 2024'
     },
     {
-        'nom_du_compteur': '102 boulevard de Magenta SE-NO',
+        'nom_du_compteur': '106 avenue Denfert Rochereau NE-SO',
         'date_et_heure_de_comptage': '2024-06-03 15:00:00+02:00',
         'coordonnées_géographiques': '48.8784, 2.3574',
         'mois_annee_comptage': 'juin 2024'
