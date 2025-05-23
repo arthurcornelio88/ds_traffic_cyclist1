@@ -97,6 +97,7 @@ Paste your service account JSON into Streamlit secrets:
 uv init
 uv venv
 uv sync
+source .venv/bin/activate
 ```
 
 ### Training
@@ -107,6 +108,9 @@ python app/train.py --env dev --model_test
 
 # Full training + GCS upload
 python app/train.py --env prod
+
+# For dev purposes, in prod, see Streamlit Cloud section
+streamlit run app/streamlit_app.py
 ```
 
 ---
