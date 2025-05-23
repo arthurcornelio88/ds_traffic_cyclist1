@@ -59,19 +59,19 @@ def get_pipeline(name: str):
 # === Exemples manuels
 raw_samples = [
     {
-        'nom_du_compteur': '106 avenue Denfert Rochereau NE-SO',
+        'nom_du_compteur': '35 boulevard de Ménilmontant NO-SE',
         'date_et_heure_de_comptage': '2025-05-17 18:00:00+02:00',
         'coordonnées_géographiques': '48.8672, 2.3501',
         'mois_annee_comptage': 'mai 2025'
     },
     {
-        'nom_du_compteur': '106 avenue Denfert Rochereau NE-SO',
+        'nom_du_compteur': 'Totem 73 boulevard de Sébastopol S-N',
         'date_et_heure_de_comptage': '2024-11-12 08:00:00+02:00',
         'coordonnées_géographiques': '48.8639, 2.3895',
         'mois_annee_comptage': 'novembre 2024'
     },
     {
-        'nom_du_compteur': '106 avenue Denfert Rochereau NE-SO',
+        'nom_du_compteur': 'Quai d'Orsay E-O',
         'date_et_heure_de_comptage': '2024-06-03 15:00:00+02:00',
         'coordonnées_géographiques': '48.8784, 2.3574',
         'mois_annee_comptage': 'juin 2024'
