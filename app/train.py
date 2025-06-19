@@ -16,7 +16,7 @@ from app.model_registry_summary import update_summary
 def setup_environment(env: str, model_test: bool):
     if env == "dev":
         mlflow.set_tracking_uri("http://127.0.0.1:5000")
-        mlflow.set_experiment("traffic_cycliste_experiment")
+        mlflow.set_experiment("traffic_cycliste_experiment_v2")
         data_path = "data/comptage-velo-donnees-compteurs_test.csv" if model_test else "data/comptage-velo-donnees-compteurs.csv"
         artifact_path = "models/"
     elif env == "prod":
