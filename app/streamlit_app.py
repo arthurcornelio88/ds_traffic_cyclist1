@@ -22,6 +22,8 @@ import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 import plotly.graph_objects as go
+import plotly.express as px
+
 
 
 
@@ -94,7 +96,7 @@ raw_samples = [
 # === UI ===
 st.sidebar.title("🧭 Navigation")
 menu = ["Présentation du projet", "Analyse Exploratoire", "Démarche",
-        "Modélisation", "Démo"]
+        "Modélisation", "Démo", "Conclusion"]
 
 selection = st.sidebar.radio(label="", options=menu)
 
@@ -693,10 +695,68 @@ elif selection == "Démo":
                 st.error("Erreur lors de la prédiction :")
                 st.code(str(e))
                 st.exception(e)
+elif selection == "Conclusion" :
 
 
+    # Style CSS personnalisé
+    st.markdown("""
+    <style>
+        .stTabs [data-baseweb="tab-list"] {
+            justify-content: center;
+        }
+        
+        .stTabs [data-baseweb="tab"] {
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        
+        .big-title {
+            text-align: center;
+            color: #1f77b4;
+            margin-bottom: 2rem;
+        }
+    </style>
+    """, unsafe_allow_html=True)
 
+    # Titre principal
+    st.markdown('<h1 class="big-title">📊 Retour d\'Expérience Complet</h1>', unsafe_allow_html=True)
 
+    # Onglets pour la navigation
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "🏠 Accueil", 
+        "🔍 EDA", 
+        "🤖 Modélisation", 
+        "🧠 Déploiement", 
+        "🙏 Conclusion"
+    ])
 
+    with tab1:
+        st.header("Bienvenue dans notre retour d'expérience")
+        st.write("""
+        Ce projet nous a permis d'acquérir de nombreuses connaissances à chaque étape.
+        Naviguez à travers les onglets pour découvrir nos apprentissages sur :
+        """)
+        cols = st.columns(4)
+        cols[0].info("🔍 Analyse des données")
+        cols[1].warning("🤖 Construction des modèles")
+        cols[2].success("🧠 Déploiement")
+        cols[3].error("🙏 Conclusion")
+        
+        st.image("https://cdn.pixabay.com/photo/2018/05/18/15/30/web-design-3411373_1280.jpg", use_container_width=True)
 
+    with tab2:
+        import eda_retro
+        eda_retro.show()
 
+    with tab3:
+        import model_retro
+        model_retro.show()
+
+    with tab4:
+        import opti_retro
+        opti_retro.show()
+
+    with tab5:
+        import conclusion
+        conclusion.show()
